@@ -12,4 +12,4 @@ WORKDIR /app
 COPY --from=builder /main /bin/app
 RUN chmod +x /bin/app
 
-CMD ["sh", "-c", "exec /bin/app"]  # Виконання команди запуску контейнера
+CMD ["sh", "-c", "exec /bin/app"]  
