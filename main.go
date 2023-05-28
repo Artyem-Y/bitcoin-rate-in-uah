@@ -41,10 +41,10 @@ func main() {
 	var serverInfo = fmt.Sprintf("The service is running. Available at %s", port)
 	log.Println(serverInfo)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
-
 }
 
 func getCurrentRateHandler(w http.ResponseWriter, r *http.Request) {
+	// getting current BTC rate
 	rate, err := utils.GetBitcoinRate()
 	if err != nil {
 		http.Error(w, "Failed to get Bitcoin rate", http.StatusInternalServerError)
@@ -57,6 +57,7 @@ func getCurrentRateHandler(w http.ResponseWriter, r *http.Request) {
 func subscribeHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 
+	// email validation
 	if !utils.ValidateEmail(email) {
 		http.Error(w, "Error: wrong email", http.StatusBadRequest)
 		return
@@ -71,6 +72,7 @@ func subscribeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	// checking if new email exists or not
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -89,6 +91,7 @@ func subscribeHandler(w http.ResponseWriter, r *http.Request) {
 
 	mutex.Lock()
 	defer mutex.Unlock()
+	// writing new email to file
 	_, err = fmt.Fprintln(file, email)
 	if err != nil {
 		log.Println("Error writing to file:", err)
@@ -100,12 +103,12 @@ func subscribeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendEmailsHandler(w http.ResponseWriter, r *http.Request) {
-
 	emails, err := utils.GetEmailList("emails.txt")
 	if err != nil {
 		log.Fatal("Reding file error:", err)
 	}
 
+	// getting current BTC rate
 	rate, err := utils.GetBitcoinRate()
 	if err != nil {
 		log.Fatal("Failed getting rate:", err)
@@ -118,7 +121,7 @@ func sendEmailsHandler(w http.ResponseWriter, r *http.Request) {
 	defer mutex.Unlock()
 
 	for _, email := range emails {
-
+		// send email via mailgun
 		_, err = mailgun.SendMail(
 			email,
 			infoEmail,
